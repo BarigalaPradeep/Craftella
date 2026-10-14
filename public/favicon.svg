@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="hydrangeaGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9EBEF6"/>
+      <stop offset="60%" stop-color="#7AA5F2"/>
+      <stop offset="100%" stop-color="#578CE6"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#111B2D"/>
+  <rect width="60" height="60" x="2" y="2" rx="14" fill="none" stroke="#7AA5F2" stroke-opacity="0.35" stroke-width="1.5"/>
+  <path d="M32 8 C32 20 20 32 8 32 C20 32 32 44 32 56 C32 44 44 32 56 32 C44 32 32 20 32 8 Z" fill="url(#hydrangeaGrad)"/>
+  <circle cx="32" cy="32" r="4.5" fill="#F4F8FF"/>
+</svg>

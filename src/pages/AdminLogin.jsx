@@ -34,13 +34,13 @@ export default function AdminLogin() {
     document.title = 'Admin Sign In | Craftella';
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const result = loginAdmin(identifier, password);
+    try {
+      const result = await loginAdmin(identifier, password);
       setIsSubmitting(false);
 
       if (result.success) {
@@ -48,7 +48,10 @@ export default function AdminLogin() {
       } else {
         setErrorMsg(result.error || 'Invalid Admin ID or Password.');
       }
-    }, 300);
+    } catch (err) {
+      setIsSubmitting(false);
+      setErrorMsg('An unexpected error occurred during sign in.');
+    }
   };
 
   return (

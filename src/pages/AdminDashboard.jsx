@@ -29,6 +29,9 @@ import {
   Navigation,
   Calendar,
   Clock,
+  Search,
+  FileText,
+  Database,
 } from 'lucide-react';
 import { usePaymentCards } from '../context/PaymentCardContext';
 import PaymentCard from '../components/PaymentCard';
@@ -75,6 +78,11 @@ export default function AdminDashboard() {
     resetLocationConfig,
     isAdminLoggedIn,
     logoutAdmin,
+    updateBookingStatus,
+    deleteBooking,
+    uploadAsset,
+    isBackendConnected,
+    isSupabaseConfigured,
   } = usePaymentCards();
 
   // If not logged in as admin, render AdminLogin page
@@ -106,6 +114,12 @@ export default function AdminDashboard() {
   ]);
   const [newFeatureText, setNewFeatureText] = useState('');
   const [filterTheme, setFilterTheme] = useState('all');
+
+  // Bookings filtering & preview states
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
+  const [previewReceiptUrl, setPreviewReceiptUrl] = useState(null);
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
 
   // Gateway / Payment QR Form State
   const [gatewayForm, setGatewayForm] = useState({
@@ -224,22 +238,28 @@ export default function AdminDashboard() {
     setEditingCard(null);
   };
 
-  // Upload Payment QR image file
-  const handlePaymentImageFileChange = (e) => {
+  // Upload Payment QR image file to Supabase Storage
+  const handlePaymentImageFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         alert('File exceeds 5MB limit. Please upload an image under 5MB.');
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setGatewayForm((prev) => ({
-          ...prev,
-          qrImageUrl: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+      setIsUploadingQr(true);
+      try {
+        const uploadRes = await uploadAsset(file, 'qr-codes');
+        if (uploadRes?.publicUrl) {
+          setGatewayForm((prev) => ({
+            ...prev,
+            qrImageUrl: uploadRes.publicUrl,
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to upload QR image to storage:', err);
+      } finally {
+        setIsUploadingQr(false);
+      }
     }
   };
 
@@ -295,8 +315,26 @@ export default function AdminDashboard() {
                 <span className="font-serif text-lg font-bold text-white tracking-wide">
                   Craftella Admin Center
                 </span>
-                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold text-emerald-400 uppercase tracking-widest border border-emerald-500/30">
-                  Live Sync
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border flex items-center gap-1.5 ${
+                    isBackendConnected
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                  }`}
+                  title={
+                    isBackendConnected
+                      ? 'Live connection to Supabase PostgreSQL database active'
+                      : 'Running in Local Storage Cache Mode. Set up .env with Supabase credentials to connect live database.'
+                  }
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      isBackendConnected
+                        ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
+                        : 'bg-amber-400'
+                    }`}
+                  />
+                  <span>{isBackendConnected ? 'Supabase Live' : 'Local Storage Mode'}</span>
                 </span>
               </div>
               <p className="text-[11px] text-[#9BB1D3]">
@@ -1845,90 +1883,178 @@ export default function AdminDashboard() {
         )}
 
         {/* TAB 3: BOOKINGS & ORDERS */}
-        {activeTab === 'bookings' && (
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h3 className="font-serif text-2xl font-medium text-white">
-                  Customer Bookings &amp; Passes Sold
-                </h3>
-                <p className="text-xs text-[#9BB1D3] mt-0.5">
-                  Real-time list of bookings placed via the Book Tickets checkout flow.
-                </p>
+        {activeTab === 'bookings' && (() => {
+          const filteredBookings = bookings.filter((b) => {
+            const matchesQuery =
+              !bookingSearch.trim() ||
+              b.customerName?.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+              b.customerEmail?.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+              b.ticketCode?.toLowerCase().includes(bookingSearch.toLowerCase()) ||
+              b.utrNumber?.toLowerCase().includes(bookingSearch.toLowerCase());
+            const matchesStatus =
+              bookingStatusFilter === 'all' || b.status === bookingStatusFilter;
+            return matchesQuery && matchesStatus;
+          });
+
+          return (
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-serif text-2xl font-medium text-white">
+                    Customer Bookings &amp; Passes Sold
+                  </h3>
+                  <p className="text-xs text-[#9BB1D3] mt-0.5">
+                    Real-time list of bookings placed via the Book Tickets checkout flow, synchronized with Supabase.
+                  </p>
+                </div>
+
+                {/* Search & Filter Bar */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9BB1D3]" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, email, code, UTR..."
+                      value={bookingSearch}
+                      onChange={(e) => setBookingSearch(e.target.value)}
+                      className="rounded-lg border border-[rgba(158,190,246,0.2)] bg-[#111B2D] pl-8 pr-3 py-1.5 text-xs text-white placeholder-[#9BB1D3]/60 focus:outline-none focus:border-[#7AA5F2]"
+                    />
+                  </div>
+
+                  <select
+                    value={bookingStatusFilter}
+                    onChange={(e) => setBookingStatusFilter(e.target.value)}
+                    className="rounded-lg border border-[rgba(158,190,246,0.2)] bg-[#111B2D] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#7AA5F2]"
+                  >
+                    <option value="all">All Statuses ({bookings.length})</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Pending Verification">Pending Verification</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto rounded-2xl border border-[rgba(158,190,246,0.2)] bg-[#111B2D] shadow-xl">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-[rgba(158,190,246,0.15)] bg-white/[0.03] text-[10px] font-bold uppercase tracking-wider text-[#9BB1D3]">
+                      <th className="py-3.5 px-4">Booking ID</th>
+                      <th className="py-3.5 px-4">Ticket Code</th>
+                      <th className="py-3.5 px-4">Customer Details</th>
+                      <th className="py-3.5 px-4">Pass Tier</th>
+                      <th className="py-3.5 px-4">Quantity</th>
+                      <th className="py-3.5 px-4">Amount</th>
+                      <th className="py-3.5 px-4">Proof</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4">Date</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[rgba(158,190,246,0.08)] text-[#CBD8ED]">
+                    {filteredBookings.length === 0 ? (
+                      <tr>
+                        <td colSpan={10} className="py-8 text-center text-xs text-[#9BB1D3]">
+                          No bookings match your current filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredBookings.map((booking) => (
+                        <tr key={booking.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-medium text-white">
+                            {booking.id}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-mono font-bold text-[#7AA5F2] bg-[#7AA5F2]/10 px-2 py-0.5 rounded border border-[#7AA5F2]/30">
+                              {booking.ticketCode}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-semibold text-white">{booking.customerName}</div>
+                            <div className="text-[11px] text-[#9BB1D3]">{booking.customerEmail}</div>
+                            {booking.whatsappNumber && (
+                              <div className="text-[10px] text-emerald-400 font-medium">
+                                WhatsApp: {booking.whatsappNumber}
+                              </div>
+                            )}
+                            {booking.city && (
+                              <div className="text-[10px] text-[#CBD8ED]/70">City: {booking.city}</div>
+                            )}
+                            {booking.utrNumber && (
+                              <div className="text-[10px] font-mono text-[#FBBF24]">
+                                UTR: {booking.utrNumber}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 font-medium text-white">
+                            {booking.ticketType}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {booking.quantity} pass{booking.quantity > 1 ? 'es' : ''}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-[#FBBF24]">
+                            ₹{booking.totalPrice?.toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {booking.receiptUrl ? (
+                              <button
+                                type="button"
+                                onClick={() => setPreviewReceiptUrl(booking.receiptUrl)}
+                                className="inline-flex items-center gap-1 rounded bg-[#7AA5F2]/15 px-2 py-1 text-[10px] font-semibold text-[#7AA5F2] hover:bg-[#7AA5F2]/25 transition-colors cursor-pointer"
+                              >
+                                <ImageIcon className="h-3 w-3" />
+                                <span>View Proof</span>
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-[#9BB1D3]/50">None</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <select
+                              value={booking.status || 'Confirmed'}
+                              onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
+                              className={`rounded-lg px-2 py-1 text-[10px] font-semibold border focus:outline-none cursor-pointer ${
+                                booking.status === 'Confirmed'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                  : booking.status === 'Cancelled'
+                                  ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                  : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                              }`}
+                            >
+                              <option value="Confirmed" className="bg-[#111B2D] text-white">Confirmed</option>
+                              <option value="Pending Verification" className="bg-[#111B2D] text-white">Pending Verification</option>
+                              <option value="Cancelled" className="bg-[#111B2D] text-white">Cancelled</option>
+                            </select>
+                          </td>
+                          <td className="py-3.5 px-4 text-[#9BB1D3]">
+                            {new Date(booking.bookedAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Delete booking ${booking.id} (${booking.ticketCode})? This action cannot be undone.`)) {
+                                  deleteBooking(booking.id);
+                                }
+                              }}
+                              className="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-500/10 transition-colors cursor-pointer"
+                              title="Delete Booking"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-
-            <div className="overflow-x-auto rounded-2xl border border-[rgba(158,190,246,0.2)] bg-[#111B2D] shadow-xl">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-[rgba(158,190,246,0.15)] bg-white/[0.03] text-[10px] font-bold uppercase tracking-wider text-[#9BB1D3]">
-                    <th className="py-3.5 px-4">Booking ID</th>
-                    <th className="py-3.5 px-4">Ticket Code</th>
-                    <th className="py-3.5 px-4">Customer Details</th>
-                    <th className="py-3.5 px-4">Pass Tier</th>
-                    <th className="py-3.5 px-4">Quantity</th>
-                    <th className="py-3.5 px-4">Amount</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(158,190,246,0.08)] text-[#CBD8ED]">
-                  {bookings.map((booking) => (
-                    <tr key={booking.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-medium text-white">
-                        {booking.id}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-mono font-bold text-[#7AA5F2] bg-[#7AA5F2]/10 px-2 py-0.5 rounded border border-[#7AA5F2]/30">
-                          {booking.ticketCode}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-white">{booking.customerName}</div>
-                        <div className="text-[11px] text-[#9BB1D3]">{booking.customerEmail}</div>
-                        {booking.whatsappNumber && (
-                          <div className="text-[10px] text-emerald-400 font-medium">
-                            WhatsApp: {booking.whatsappNumber}
-                          </div>
-                        )}
-                        {booking.city && (
-                          <div className="text-[10px] text-[#CBD8ED]/70">City: {booking.city}</div>
-                        )}
-                        {booking.utrNumber && (
-                          <div className="text-[10px] font-mono text-[#FBBF24]">
-                            UTR: {booking.utrNumber}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 font-medium text-white">
-                        {booking.ticketType}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {booking.quantity} pass{booking.quantity > 1 ? 'es' : ''}
-                      </td>
-                      <td className="py-3.5 px-4 font-bold text-[#FBBF24]">
-                        ₹{booking.totalPrice?.toLocaleString('en-IN')}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                          <CheckCircle2 className="h-3 w-3" />
-                          <span>{booking.status || 'Confirmed'}</span>
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-[#9BB1D3]">
-                        {new Date(booking.bookedAt).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* EDIT MODAL FOR PAYMENT CARDS */}
@@ -2047,6 +2173,52 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENT PROOF PREVIEW MODAL */}
+      {previewReceiptUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="relative max-w-lg w-full rounded-3xl border border-[rgba(158,190,246,0.3)] bg-[#111B2D] p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+              <h4 className="font-serif text-lg font-bold text-white flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-[#7AA5F2]" />
+                <span>Payment Proof Receipt</span>
+              </h4>
+              <button
+                type="button"
+                onClick={() => setPreviewReceiptUrl(null)}
+                className="text-[#9BB1D3] hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center max-h-[70vh]">
+              <img
+                src={previewReceiptUrl}
+                alt="Payment Proof"
+                className="max-h-[68vh] w-auto object-contain"
+              />
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <a
+                href={previewReceiptUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-[#7AA5F2] hover:underline"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>Open Original Image</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setPreviewReceiptUrl(null)}
+                className="rounded-xl bg-white/[0.08] hover:bg-white/[0.12] px-4 py-2 text-xs font-semibold text-white transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

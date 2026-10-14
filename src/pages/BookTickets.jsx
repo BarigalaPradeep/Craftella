@@ -15,7 +15,7 @@ import {
 import { usePaymentCards } from '../context/PaymentCardContext';
 
 export default function BookTickets() {
-  const { activeCards, addBooking, paymentConfig } = usePaymentCards();
+  const { activeCards, addBooking, paymentConfig, uploadAsset } = usePaymentCards();
 
   const [selectedTicketId, setSelectedTicketId] = useState(
     activeCards[0]?.id || 'single'
@@ -42,6 +42,7 @@ export default function BookTickets() {
   const [screenshotPreview, setScreenshotPreview] = useState(null);
   const [confirmPaymentCompleted, setConfirmPaymentCompleted] = useState(false);
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
   // Keep selectedTicketId valid if cards change
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function BookTickets() {
   };
 
   // Step 3: Complete Booking & Verify Payment (transitions to Image 2)
-  const handleConfirmUpiPayment = (e) => {
+  const handleConfirmUpiPayment = async (e) => {
     e.preventDefault();
     if (!utrNumber.trim()) {
       alert('Please enter your UTR / Transaction ID.');
@@ -110,6 +111,20 @@ export default function BookTickets() {
     if (!confirmPaymentCompleted) {
       alert('Please check the confirmation box indicating you have completed the payment.');
       return;
+    }
+
+    setIsSubmittingPayment(true);
+
+    let receiptUrl = '';
+    if (screenshotFile) {
+      try {
+        const uploadRes = await uploadAsset(screenshotFile, 'receipts');
+        if (uploadRes?.publicUrl) {
+          receiptUrl = uploadRes.publicUrl;
+        }
+      } catch (err) {
+        console.warn('Receipt upload exception:', err);
+      }
     }
 
     // Generate 6-character booking code as mentioned in Step 01
@@ -134,17 +149,19 @@ export default function BookTickets() {
       whatsappNumber,
       city,
       utrNumber,
+      receiptUrl,
       paymentMethod: `UPI (${activeUpiId})`,
       status: 'Confirmed',
     };
 
-    // Save to shared context and localStorage
-    addBooking(bookingPayload);
+    // Save to shared context, Supabase, and localStorage
+    await addBooking(bookingPayload);
 
     setConfirmedBooking({
       ...bookingPayload,
       name: customerName || 'Valued Guest',
     });
+    setIsSubmittingPayment(false);
     setPaymentStep(false);
     window.scrollTo({ top: 100, behavior: 'smooth' });
   };
@@ -405,10 +422,20 @@ export default function BookTickets() {
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full rounded-xl bg-gradient-to-r from-[#e11d48] to-[#f43f5e] py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_0_20px_rgba(244,63,94,0.35)] hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                      disabled={isSubmittingPayment}
+                      className="w-full rounded-xl bg-gradient-to-r from-[#e11d48] to-[#f43f5e] py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_0_20px_rgba(244,63,94,0.35)] hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      <span>Complete Booking &amp; Verify Payment</span>
-                      <ArrowRight className="h-4 w-4" />
+                      {isSubmittingPayment ? (
+                        <>
+                          <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                          <span>Submitting Booking to Database...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Complete Booking &amp; Verify Payment</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>

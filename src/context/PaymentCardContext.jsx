@@ -397,25 +397,40 @@ export function PaymentCardProvider({ children }) {
     setCards((prev) =>
       prev.map((card) => {
         if (card.id !== id) return card;
-        const numPrice = updatedData.price !== undefined ? Number(updatedData.price) : card.price;
+        const numPrice = updatedData.price !== undefined && updatedData.price !== '' ? Number(updatedData.price) : card.price;
         const formattedPrice = `₹${numPrice.toLocaleString('en-IN')}`;
+        const spots =
+          updatedData.spotsLeft !== undefined && updatedData.spotsLeft !== ''
+            ? Number(updatedData.spotsLeft)
+            : card.spotsLeft;
+        const origPrice =
+          updatedData.originalPrice !== undefined && updatedData.originalPrice !== ''
+            ? Number(updatedData.originalPrice)
+            : null;
+
+        let parsedFeatures = card.features || [];
+        if (Array.isArray(updatedData.features)) {
+          parsedFeatures = updatedData.features;
+        } else if (typeof updatedData.featuresText === 'string') {
+          parsedFeatures = updatedData.featuresText.split('\n').map((s) => s.trim()).filter(Boolean);
+        } else if (typeof updatedData.features === 'string') {
+          parsedFeatures = updatedData.features.split('\n').map((s) => s.trim()).filter(Boolean);
+        }
+
         updatedCard = {
           ...card,
           ...updatedData,
           price: numPrice,
+          originalPrice: origPrice,
+          spotsLeft: spots,
           formattedPrice,
-          features: Array.isArray(updatedData.features)
-            ? updatedData.features
-            : (updatedData.features || '')
-                .split('\n')
-                .map((s) => s.trim())
-                .filter(Boolean),
+          features: parsedFeatures,
         };
         return updatedCard;
       })
     );
 
-    showToast(`Payment card updated successfully!`, 'info');
+    showToast(`Card "${updatedCard?.title || 'Pass'}" updated successfully!`, 'info');
 
     // Supabase DB update
     if (isSupabaseConfigured && supabase && updatedCard) {

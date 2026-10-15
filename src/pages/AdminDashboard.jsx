@@ -986,7 +986,16 @@ export default function AdminDashboard() {
                       key={card.id}
                       card={card}
                       adminView={true}
-                      onEdit={(c) => setEditingCard({ ...c, featuresText: c.features.join('\n') })}
+                      onEdit={(c) =>
+                        setEditingCard({
+                          ...c,
+                          featuresText: Array.isArray(c.features) ? c.features.join('\n') : '',
+                          spotsLeft: c.spotsLeft ?? '',
+                          originalPrice: c.originalPrice ?? '',
+                          category: c.category || '',
+                          colorTheme: c.colorTheme || 'blue',
+                        })
+                      }
                       onDelete={(id) => {
                         if (window.confirm(`Are you sure you want to delete "${card.title}"?`)) {
                           deleteCard(id);
@@ -2252,79 +2261,155 @@ export default function AdminDashboard() {
 
       {/* EDIT MODAL FOR PAYMENT CARDS */}
       {editingCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg rounded-3xl border border-[#7AA5F2] bg-[#111B2D] p-6 sm:p-8 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-xl rounded-3xl border border-[#7AA5F2] bg-[#111B2D] p-6 sm:p-8 shadow-2xl my-8">
             <div className="flex items-center justify-between pb-4 border-b border-[rgba(158,190,246,0.15)]">
-              <h3 className="font-serif text-xl font-medium text-white">
-                Edit Payment Card: {editingCard.title}
-              </h3>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#7AA5F2]">
+                  Live Card Editor
+                </span>
+                <h3 className="font-serif text-xl sm:text-2xl font-medium text-white">
+                  Edit Card: {editingCard.title}
+                </h3>
+              </div>
               <button
+                type="button"
                 onClick={() => setEditingCard(null)}
-                className="text-[#9BB1D3] hover:text-white text-lg p-1"
+                className="h-8 w-8 rounded-full border border-white/10 bg-white/5 text-[#9BB1D3] hover:text-white hover:bg-white/10 flex items-center justify-center text-sm transition-colors cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="space-y-4 mt-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
-                  Card Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editingCard.title}
-                  onChange={(e) => setEditingCard({ ...editingCard, title: e.target.value })}
-                  className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleEditSubmit} className="space-y-4 mt-5">
+              {/* Title & Badge */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
-                    Badge / Tier
+                    Card Title *
                   </label>
                   <input
                     type="text"
-                    value={editingCard.type}
-                    onChange={(e) => setEditingCard({ ...editingCard, type: e.target.value })}
-                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                    required
+                    value={editingCard.title || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, title: e.target.value })}
+                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2.5 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
-                    Price (₹)
+                    Badge / Pass Tier
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCard.type || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, type: e.target.value })}
+                    placeholder="e.g. SPECIAL PASS, POPULAR"
+                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2.5 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Pricing & Spots Left */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
+                    Selling Price (₹) *
                   </label>
                   <input
                     type="number"
                     required
-                    value={editingCard.price}
+                    min="0"
+                    value={editingCard.price ?? ''}
                     onChange={(e) => setEditingCard({ ...editingCard, price: e.target.value })}
-                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2.5 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
+                    Original Price (₹) <span className="text-[#9BB1D3] text-[10px]">(Strike)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editingCard.originalPrice ?? ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, originalPrice: e.target.value })}
+                    placeholder="Optional"
+                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2.5 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-amber-300 mb-1 flex items-center justify-between">
+                    <span>Available Passes</span>
+                    <span className="text-[10px] font-normal text-amber-400">
+                      Only {editingCard.spotsLeft || 0} left
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editingCard.spotsLeft ?? ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, spotsLeft: e.target.value })}
+                    placeholder="e.g. 32"
+                    className="w-full rounded-xl border border-amber-400/50 bg-amber-400/5 px-3.5 py-2.5 text-xs text-amber-200 focus:border-amber-400 focus:outline-none font-bold"
                   />
                 </div>
               </div>
 
+              {/* Category & Color Theme */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCard.category || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, category: e.target.value })}
+                    placeholder="e.g. Individual, Popular Duo"
+                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2.5 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
+                    Card Color Theme
+                  </label>
+                  <select
+                    value={editingCard.colorTheme || 'blue'}
+                    onChange={(e) => setEditingCard({ ...editingCard, colorTheme: e.target.value })}
+                    className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-[#0C1424] px-3.5 py-2.5 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                  >
+                    <option value="blue">Royal Blue</option>
+                    <option value="purple">Cosmic Violet</option>
+                    <option value="amber">Golden Amber</option>
+                    <option value="emerald">Emerald</option>
+                    <option value="rose">Ruby Rose</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Subtitle */}
               <div>
                 <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
-                  Subtitle
+                  Subtitle Description
                 </label>
                 <input
                   type="text"
-                  value={editingCard.subtitle}
+                  value={editingCard.subtitle || ''}
                   onChange={(e) => setEditingCard({ ...editingCard, subtitle: e.target.value })}
-                  className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
+                  placeholder="e.g. Entry for one person with custom artwork"
+                  className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 px-3.5 py-2.5 text-xs text-white focus:border-[#7AA5F2] focus:outline-none"
                 />
               </div>
 
+              {/* Features */}
               <div>
                 <label className="block text-xs font-semibold text-[#CBD8ED] mb-1">
-                  Features (One per line)
+                  What is Included (One item per line)
                 </label>
                 <textarea
-                  rows={4}
-                  value={editingCard.featuresText}
+                  rows={3}
+                  value={editingCard.featuresText || ''}
                   onChange={(e) =>
                     setEditingCard({
                       ...editingCard,
@@ -2332,35 +2417,53 @@ export default function AdminDashboard() {
                       features: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean),
                     })
                   }
+                  placeholder="1x Rhinestone canvas art kit&#10;All sparkling craft supplies included&#10;Beverage &amp; refreshments"
                   className="w-full rounded-xl border border-[rgba(158,190,246,0.2)] bg-black/40 p-3 text-xs text-white focus:border-[#7AA5F2] focus:outline-none font-sans"
                 />
               </div>
 
-              <div className="flex items-center gap-4 pt-2">
-                <label className="flex items-center gap-2 text-xs text-white cursor-pointer">
+              {/* Toggles */}
+              <div className="flex flex-wrap items-center gap-6 pt-1">
+                <label className="flex items-center gap-2 text-xs text-white cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    checked={editingCard.recommended}
+                    checked={editingCard.recommended || false}
                     onChange={(e) =>
                       setEditingCard({ ...editingCard, recommended: e.target.checked })
                     }
-                    className="h-4 w-4 rounded border-[#7AA5F2] text-[#7AA5F2]"
+                    className="h-4 w-4 rounded border-[#7AA5F2] text-[#7AA5F2] focus:ring-[#7AA5F2]"
                   />
-                  <span>Mark as Recommended</span>
+                  <span>Mark as Recommended (Flame badge)</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-xs text-white cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={editingCard.status === 'active'}
+                    onChange={(e) =>
+                      setEditingCard({
+                        ...editingCard,
+                        status: e.target.checked ? 'active' : 'paused',
+                      })
+                    }
+                    className="h-4 w-4 rounded border-[#7AA5F2] text-[#7AA5F2] focus:ring-[#7AA5F2]"
+                  />
+                  <span>Live for Users (Visible on Booking Page)</span>
                 </label>
               </div>
 
+              {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setEditingCard(null)}
-                  className="rounded-xl border border-white/20 px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
+                  className="rounded-xl border border-white/20 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#7AA5F2] px-5 py-2 text-xs font-bold text-white hover:bg-[#578CE6] transition-colors"
+                  className="rounded-xl bg-gradient-to-r from-[#7AA5F2] to-[#578CE6] px-6 py-2.5 text-xs font-bold text-white hover:brightness-110 shadow-lg shadow-[#7AA5F2]/25 transition-all cursor-pointer"
                 >
                   Save Changes
                 </button>

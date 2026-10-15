@@ -1,11 +1,15 @@
 import React from 'react';
 import { Ticket, Map, CalendarClock } from 'lucide-react';
 import { eventData } from '../data/eventData';
+import { usePaymentCards } from '../context/PaymentCardContext';
 
 const stepIcons = [Ticket, Map, CalendarClock];
 
 export default function PreparationSteps() {
   const { preparation } = eventData;
+  const { locationConfig } = usePaymentCards();
+  const eventTime = locationConfig?.eventTime || '2:00 PM – 5:00 PM';
+  const eventDate = locationConfig?.eventDate || '18 October 2026';
 
   return (
     <section className="mt-16 sm:mt-20" aria-labelledby="prep-heading">
@@ -54,7 +58,9 @@ export default function PreparationSteps() {
                     <Icon className="h-3.5 w-3.5 text-[#7AA5F2]/50 group-hover:text-[#7AA5F2] transition-colors" />
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-[#9BB1D3]">
-                    {step.description}
+                    {step.number === 3
+                      ? `The event is scheduled for ${eventTime} on ${eventDate}. Arrive 10–15 minutes early to grab your preferred seating and welcome beverage.`
+                      : step.description}
                   </p>
                 </div>
               </article>

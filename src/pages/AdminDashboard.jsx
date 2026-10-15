@@ -32,7 +32,10 @@ import {
   Search,
   FileText,
   Database,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { usePaymentCards } from '../context/PaymentCardContext';
 import PaymentCard from '../components/PaymentCard';
 import AdminLogin from './AdminLogin';
@@ -83,6 +86,7 @@ export default function AdminDashboard() {
     uploadAsset,
     isBackendConnected,
     isSupabaseConfigured,
+    showToast,
   } = usePaymentCards();
 
   // If not logged in as admin, render AdminLogin page
@@ -273,6 +277,168 @@ export default function AdminDashboard() {
   const handleSaveLocation = (e) => {
     e.preventDefault();
     updateLocationConfig(locationForm);
+  };
+
+  // Export Customer Bookings to Excel (.xlsx)
+  const handleExportExcel = (dataToExport = bookings, filenamePrefix = 'Craftella_Bookings') => {
+    if (!dataToExport || dataToExport.length === 0) {
+      if (showToast) showToast('No booking data available to export.', 'error');
+      return;
+    }
+
+    try {
+      // 1. Prepare detailed rows for Bookings sheet
+      const sheetData = dataToExport.map((b, index) => ({
+        'S.No': index + 1,
+        'Booking ID': b.id || '',
+        'Ticket Code': b.ticketCode || '',
+        'Customer Name': b.customerName || '',
+        'Customer Email': b.customerEmail || '',
+        'WhatsApp Number': b.whatsappNumber || '',
+        'City': b.city || '',
+        'Pass Tier': b.ticketType || '',
+        'Quantity': Number(b.quantity) || 1,
+        'Unit Price (INR)': Number(b.unitPrice) || 0,
+        'Total Amount (INR)': Number(b.totalPrice) || 0,
+        'Payment Method': b.paymentMethod || 'UPI',
+        'UTR / Ref Number': b.utrNumber || '',
+        'Payment Status': b.status || 'Confirmed',
+        'Event Date': b.eventDate || 'Sunday, 18 October 2026',
+        'Event Time': b.eventTime || '2:00 PM – 5:00 PM',
+        'Venue': b.venue || '55 Bistro',
+        'Booked At': b.bookedAt ? new Date(b.bookedAt).toLocaleString('en-IN') : '',
+        'Receipt URL': b.receiptUrl || '',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(sheetData);
+
+      // Auto-fit column widths for clear readability in Excel
+      worksheet['!cols'] = [
+        { wch: 6 },  // S.No
+        { wch: 14 }, // Booking ID
+        { wch: 14 }, // Ticket Code
+        { wch: 24 }, // Customer Name
+        { wch: 30 }, // Customer Email
+        { wch: 16 }, // WhatsApp
+        { wch: 18 }, // City
+        { wch: 16 }, // Pass Tier
+        { wch: 10 }, // Quantity
+        { wch: 16 }, // Unit Price
+        { wch: 18 }, // Total Amount
+        { wch: 16 }, // Payment Method
+        { wch: 22 }, // UTR
+        { wch: 16 }, // Status
+        { wch: 22 }, // Event Date
+        { wch: 18 }, // Event Time
+        { wch: 16 }, // Venue
+        { wch: 22 }, // Booked At
+        { wch: 36 }, // Receipt URL
+      ];
+
+      // 2. Prepare Summary Sheet
+      const totalRevenue = dataToExport.reduce((sum, b) => sum + (Number(b.totalPrice) || 0), 0);
+      const totalPasses = dataToExport.reduce((sum, b) => sum + (Number(b.quantity) || 0), 0);
+      const confirmedCount = dataToExport.filter((b) => b.status === 'Confirmed').length;
+      const pendingCount = dataToExport.filter((b) => b.status === 'Pending Verification').length;
+      const cancelledCount = dataToExport.filter((b) => b.status === 'Cancelled').length;
+
+      const summaryData = [
+        { Metric: 'Report Generated At', Value: new Date().toLocaleString('en-IN') },
+        { Metric: 'Total Bookings', Value: dataToExport.length },
+        { Metric: 'Total Passes Sold', Value: totalPasses },
+        { Metric: 'Total Revenue (INR)', Value: `₹${totalRevenue.toLocaleString('en-IN')}` },
+        { Metric: 'Confirmed Bookings', Value: confirmedCount },
+        { Metric: 'Pending Verifications', Value: pendingCount },
+        { Metric: 'Cancelled Bookings', Value: cancelledCount },
+      ];
+
+      const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+      summarySheet['!cols'] = [{ wch: 24 }, { wch: 32 }];
+
+      // 3. Assemble Workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings Details');
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Revenue Summary');
+
+      // 4. Download file
+      const dateStr = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(workbook, `${filenamePrefix}_${dateStr}.xlsx`);
+
+      if (showToast) {
+        showToast(`Excel spreadsheet downloaded (${dataToExport.length} bookings)!`, 'success');
+      }
+    } catch (err) {
+      console.error('Export to Excel error:', err);
+      if (showToast) showToast('Failed to generate Excel file.', 'error');
+    }
+  };
+
+  // Export to CSV fallback
+  const handleExportCsv = (dataToExport = bookings) => {
+    if (!dataToExport || dataToExport.length === 0) {
+      if (showToast) showToast('No booking data to export.', 'error');
+      return;
+    }
+    try {
+      const headers = [
+        'Booking ID',
+        'Ticket Code',
+        'Customer Name',
+        'Customer Email',
+        'WhatsApp Number',
+        'City',
+        'Pass Tier',
+        'Quantity',
+        'Unit Price (INR)',
+        'Total Amount (INR)',
+        'Payment Method',
+        'UTR Number',
+        'Status',
+        'Event Date',
+        'Event Time',
+        'Venue',
+        'Booked At',
+        'Receipt URL',
+      ];
+
+      const csvRows = [
+        headers.join(','),
+        ...dataToExport.map((b) =>
+          [
+            `"${b.id || ''}"`,
+            `"${b.ticketCode || ''}"`,
+            `"${(b.customerName || '').replace(/"/g, '""')}"`,
+            `"${(b.customerEmail || '').replace(/"/g, '""')}"`,
+            `"${b.whatsappNumber || ''}"`,
+            `"${(b.city || '').replace(/"/g, '""')}"`,
+            `"${b.ticketType || ''}"`,
+            b.quantity || 1,
+            b.unitPrice || 0,
+            b.totalPrice || 0,
+            `"${b.paymentMethod || 'UPI'}"`,
+            `"${b.utrNumber || ''}"`,
+            `"${b.status || 'Confirmed'}"`,
+            `"${b.eventDate || ''}"`,
+            `"${b.eventTime || ''}"`,
+            `"${b.venue || ''}"`,
+            `"${b.bookedAt ? new Date(b.bookedAt).toLocaleString('en-IN') : ''}"`,
+            `"${b.receiptUrl || ''}"`,
+          ].join(',')
+        ),
+      ];
+
+      const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Craftella_Bookings_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      if (showToast) showToast('CSV file downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Export CSV error:', err);
+      if (showToast) showToast('Failed to generate CSV file.', 'error');
+    }
   };
 
   // Preview object for real-time card preview
@@ -1931,6 +2097,33 @@ export default function AdminDashboard() {
                     <option value="Pending Verification">Pending Verification</option>
                     <option value="Cancelled">Cancelled</option>
                   </select>
+
+                  {/* Download Excel Spreadsheet */}
+                  <button
+                    type="button"
+                    onClick={() => handleExportExcel(filteredBookings)}
+                    disabled={filteredBookings.length === 0}
+                    className="flex items-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed px-3.5 py-1.5 text-xs font-semibold text-white shadow-md shadow-emerald-950/50 transition-all hover:scale-[1.02] active:scale-95"
+                    title="Download all customer bookings details as an Excel spreadsheet (.xlsx)"
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    <span>Download Excel</span>
+                    <span className="rounded-full bg-emerald-800/80 px-1.5 py-0.2 text-[10px] text-emerald-200">
+                      {filteredBookings.length}
+                    </span>
+                  </button>
+
+                  {/* CSV Export Option */}
+                  <button
+                    type="button"
+                    onClick={() => handleExportCsv(filteredBookings)}
+                    disabled={filteredBookings.length === 0}
+                    className="flex items-center gap-1.5 rounded-lg border border-[rgba(158,190,246,0.2)] bg-[#111B2D] hover:bg-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 text-xs text-[#CBD8ED] transition-colors"
+                    title="Download as CSV format"
+                  >
+                    <Download className="h-3.5 w-3.5 text-[#9BB1D3]" />
+                    <span>CSV</span>
+                  </button>
                 </div>
               </div>
 

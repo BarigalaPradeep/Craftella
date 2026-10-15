@@ -530,14 +530,24 @@ export function PaymentCardProvider({ children }) {
     const updated = {
       ...locationConfig,
       ...newFields,
+      name: newFields.venueName || newFields.name || locationConfig?.venueName || '55 Bistro',
+      venueName: newFields.venueName || newFields.name || locationConfig?.venueName || '55 Bistro',
       updatedAt: new Date().toISOString(),
     };
     setLocationConfig(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_LOCATION_CONFIG, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Failed to cache locationConfig:', e);
+    }
     showToast('Event location and venue details updated successfully!', 'success');
 
     if (isSupabaseConfigured && supabase) {
       const { error } = await dbSaveLocationConfig(updated);
-      if (error) console.error('Supabase saveLocationConfig error:', error);
+      if (error) {
+        console.error('Supabase saveLocationConfig error:', error);
+        showToast('Saved locally. Database sync warning: ' + (error.message || error), 'warning');
+      }
     }
   };
 

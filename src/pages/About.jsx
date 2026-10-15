@@ -12,12 +12,7 @@ export default function About() {
       {/* HERO */}
       <section className="relative px-6 py-20 sm:px-8 sm:py-24 text-center overflow-hidden">
         <div className="mx-auto max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(158,190,246,0.25)] bg-[rgba(122,165,242,0.08)] px-4 py-2 text-[10px] font-bold tracking-[0.25em] text-[#7AA5F2] uppercase">
-            <Sparkles className="w-3 h-3 text-[#578CE6]" />
-            <span>CRAFTELLA</span>
-          </div>
-
-          <h1 className="mt-6 font-serif text-4xl sm:text-6xl md:text-7xl font-medium tracking-tight text-white leading-tight">
+          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-medium tracking-tight text-white leading-tight">
             Creativity <br />
             <span className="italic text-[#7AA5F2]">with a little sparkle.</span>
           </h1>

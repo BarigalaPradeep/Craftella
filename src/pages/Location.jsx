@@ -12,15 +12,34 @@ export default function Location() {
   const venue = locationConfig || eventData.venue;
 
   const liveOverviewCards = overviewCards.map((card) => {
-    if (card.id === 'date' && venue.eventDate) return { ...card, value: venue.eventDate };
-    if (card.id === 'time' && venue.eventTime) return { ...card, value: venue.eventTime };
-    if (card.id === 'venue') return { ...card, value: venue.venueName || venue.name };
+    if (card.id === 'date') {
+      return {
+        ...card,
+        value: venue.eventDate || card.value,
+      };
+    }
+    if (card.id === 'time') {
+      return {
+        ...card,
+        value: venue.eventTime || card.value,
+      };
+    }
+    if (card.id === 'venue') {
+      return {
+        ...card,
+        value: venue.venueName || venue.name || card.value,
+        description: venue.address
+          ? `${venue.address.split(',')[0]} • Tap for Directions`
+          : card.description,
+        href: venue.googleMapsUrl || eventData.venue.googleMapsUrl,
+      };
+    }
     return card;
   });
 
   useEffect(() => {
-    document.title = 'Location | Craftella';
-  }, []);
+    document.title = `${venue.venueName || 'Location'} | Craftella`;
+  }, [venue.venueName]);
 
   return (
     <div className="min-h-[75vh] overflow-hidden">
@@ -34,17 +53,8 @@ export default function Location() {
         aria-label="Location page hero"
       >
         <div className="mx-auto max-w-4xl">
-          {/* Eyebrow badge */}
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-[rgba(158,190,246,0.25)] bg-[rgba(122,165,242,0.08)] px-4 py-2 text-[10px] font-bold tracking-[0.25em] text-[#7AA5F2] uppercase shadow-sm">
-            <span
-              className="h-2 w-2 rounded-full bg-[#578CE6] shadow-[0_0_12px_#578CE6]"
-              aria-hidden="true"
-            />
-            <span>{hero.eyebrow}</span>
-          </div>
-
           {/* Main Heading */}
-          <h1 className="mt-6 font-serif text-4xl sm:text-6xl md:text-7xl lg:text-[80px] font-medium leading-[1.08] tracking-[-0.03em] text-white">
+          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-[80px] font-medium leading-[1.08] tracking-[-0.03em] text-white">
             {hero.headingLine1}{' '}
             <span className="block font-serif italic text-[#7AA5F2]">
               {hero.headingLine2}
@@ -72,6 +82,7 @@ export default function Location() {
               value={card.value}
               description={card.description}
               icon={card.icon}
+              href={card.href}
             />
           ))}
         </section>

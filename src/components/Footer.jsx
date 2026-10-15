@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Check } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -53,71 +53,21 @@ export default function Footer() {
               Premium craft kits and creative experiences.
             </p>
 
-            {/* Social Icons (5 rounded buttons) */}
-            <div className="flex items-center gap-2 pt-1">
-              {/* 1. Notes / Community */}
+            {/* Social Icons (Instagram only) */}
+            <div className="flex items-center gap-2.5 pt-1">
+              {/* Instagram */}
               <a
-                href="#community"
-                aria-label="Craftella Community"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[#9BB1D3] hover:border-[#7AA5F2] hover:bg-white/[0.08] hover:text-white transition-all"
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                title="Follow Craftella on Instagram"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[#9BB1D3] hover:border-[#E1306C] hover:bg-[#E1306C]/10 hover:text-[#E1306C] hover:scale-105 transition-all"
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-              </a>
-
-              {/* 2. Facebook */}
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[#9BB1D3] hover:border-[#7AA5F2] hover:bg-white/[0.08] hover:text-white transition-all"
-              >
-                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
-              </a>
-
-              {/* 3. Pinterest */}
-              <a
-                href="https://pinterest.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Pinterest"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[#9BB1D3] hover:border-[#7AA5F2] hover:bg-white/[0.08] hover:text-white transition-all"
-              >
-                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0a12 12 0 0 0-4.37 23.18c-.06-.99-.1-2.53.2-3.62l1.35-5.74s-.35-.7-.35-1.74c0-1.63.95-2.85 2.12-2.85 1 0 1.48.75 1.48 1.65 0 1-.64 2.5-1 3.88-.28 1.17.59 2.12 1.74 2.12 2.09 0 3.7-2.2 3.7-5.38 0-2.81-2.02-4.78-4.9-4.78-3.34 0-5.3 2.5-5.3 5.09 0 1.01.39 2.09.88 2.68.1.12.11.23.08.35l-.33 1.35c-.05.22-.17.27-.4.16-1.5-.7-2.43-2.88-2.43-4.64 0-3.77 2.74-7.24 7.9-7.24 4.15 0 7.37 2.96 7.37 6.91 0 4.12-2.6 7.44-6.2 7.44-1.21 0-2.35-.63-2.74-1.38l-.75 2.85c-.27 1.04-1 2.34-1.49 3.14A12 12 0 1 0 12 0z" />
-                </svg>
-              </a>
-
-              {/* 4. YouTube */}
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[#9BB1D3] hover:border-[#7AA5F2] hover:bg-white/[0.08] hover:text-white transition-all"
-              >
-                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.5V8.5l6.3 3.5-6.3 3.5z" />
-                </svg>
-              </a>
-
-              {/* 5. TikTok */}
-              <a
-                href="https://tiktok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TikTok"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[#9BB1D3] hover:border-[#7AA5F2] hover:bg-white/[0.08] hover:text-white transition-all"
-              >
-                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.5 0h3.5a5.5 5.5 0 0 0 4 4v3.5a9 9 0 0 1-4-1V14a7 7 0 1 1-7-7c.7 0 1.4.1 2 .3V11a3.5 3.5 0 1 0 1.5 2.9V0z" />
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
               </a>
             </div>
@@ -190,16 +140,6 @@ export default function Footer() {
               <li>
                 <Link to="/about" className="hover:text-white transition-colors">
                   Returns
-                </Link>
-              </li>
-              <li className="pt-1">
-                <Link
-                  to="/admin"
-                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#CBD8ED] hover:text-[#7AA5F2] transition-colors"
-                  title="Admin Portal"
-                >
-                  <ShieldCheck className="h-3 w-3 text-[#7AA5F2]" />
-                  <span>Admin Portal</span>
                 </Link>
               </li>
             </ul>

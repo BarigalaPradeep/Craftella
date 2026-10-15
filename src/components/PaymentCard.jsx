@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Check, Flame, ShieldCheck } from 'lucide-react';
+import { Sparkles, Check, Flame, ShieldCheck, Edit3 } from 'lucide-react';
 
 const themeStyles = {
   blue: {
@@ -109,7 +109,7 @@ export default function PaymentCard({
         </div>
 
         {/* Selected or Status check */}
-        {!adminView && (
+        {!adminView ? (
           <div
             className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs transition-colors ${
               isSelected
@@ -119,6 +119,21 @@ export default function PaymentCard({
           >
             {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
           </div>
+        ) : (
+          onEdit && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(card);
+              }}
+              title="Edit this card and available passes"
+              className="flex items-center gap-1 rounded-full border border-[#7AA5F2]/50 bg-[#7AA5F2]/15 px-2.5 py-1 text-[11px] font-bold text-[#9BB1D3] hover:text-white hover:bg-[#7AA5F2] hover:border-[#7AA5F2] transition-all cursor-pointer"
+            >
+              <Edit3 className="h-3 w-3" />
+              <span>Edit</span>
+            </button>
+          )
         )}
       </div>
 
@@ -172,10 +187,25 @@ export default function PaymentCard({
             <Sparkles className={`h-3 w-3 ${theme.accentText}`} />
             <span>Instant Confirmation</span>
           </span>
-          {card.spotsLeft && (
-            <span className="font-medium text-amber-300/90">
-              Only {card.spotsLeft} passes left
-            </span>
+          {card.spotsLeft !== undefined && card.spotsLeft !== null && (
+            <div className="flex items-center gap-1.5">
+              <span className="font-medium text-amber-300/90">
+                Only {card.spotsLeft} passes left
+              </span>
+              {adminView && onEdit && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(card);
+                  }}
+                  title="Click to edit passes count"
+                  className="rounded px-1.5 py-0.5 text-[10px] font-bold bg-amber-400/20 text-amber-300 hover:bg-amber-400/30 hover:text-white transition-colors cursor-pointer"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
           )}
         </div>
 

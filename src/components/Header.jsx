@@ -6,16 +6,17 @@ import {
   X,
   Sparkles,
   ArrowRight,
-  ShieldCheck,
   Home as HomeIcon,
   Ticket,
   MapPin,
   Info,
 } from 'lucide-react';
 import { eventData } from '../data/eventData';
+import { usePaymentCards } from '../context/PaymentCardContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { locationConfig } = usePaymentCards();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -83,23 +84,8 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* CTA Buttons & Admin portal toggle */}
+        {/* CTA Buttons */}
         <div className="flex items-center gap-3">
-          {/* Admin link button */}
-          <NavLink
-            to="/admin"
-            className={({ isActive }) =>
-              `inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${
-                isActive
-                  ? 'border-[#7AA5F2] bg-[#7AA5F2]/20 text-white ring-1 ring-[#7AA5F2]/50 shadow-[0_0_15px_rgba(122,165,242,0.3)]'
-                  : 'border-[rgba(158,190,246,0.25)] bg-white/[0.03] text-[#CBD8ED] hover:border-[#7AA5F2] hover:bg-[#7AA5F2]/10 hover:text-white'
-              }`
-            }
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-[#7AA5F2]" />
-            <span>Admin</span>
-          </NavLink>
-
           {/* Book Pass CTA */}
           <Link
             to="/book-tickets"
@@ -158,18 +144,6 @@ export default function Header() {
               </Link>
 
               <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigate('/admin');
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold uppercase tracking-wider border border-[rgba(158,190,246,0.25)] bg-white/[0.04] text-[#CBD8ED] hover:text-white"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#7AA5F2]" />
-                  <span>Admin</span>
-                </button>
-
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
@@ -233,30 +207,6 @@ export default function Header() {
                     </button>
                   );
                 })}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigate('/admin');
-                  }}
-                  className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-sm transition-all text-left mt-1 border cursor-pointer ${
-                    location.pathname === '/admin'
-                      ? 'border-[#7AA5F2] bg-[#7AA5F2]/20 text-white font-semibold'
-                      : 'border-white/10 bg-[#111B2D]/70 text-[#CBD8ED] hover:bg-white/[0.08]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.05] text-[#7AA5F2]">
-                      <ShieldCheck className="w-4 h-4 text-[#7AA5F2]" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-white">Admin Management Portal</div>
-                      <div className="text-[10px] text-[#9BB1D3]">Edit passes, payments &amp; venue</div>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-[#7AA5F2] opacity-70 shrink-0" />
-                </button>
               </div>
 
               <div className="pt-4 pb-4 border-t border-[rgba(158,190,246,0.15)] flex flex-col gap-3">
@@ -272,7 +222,7 @@ export default function Header() {
                   <Sparkles className="w-4 h-4 text-white" />
                 </button>
                 <div className="text-center text-[11px] text-white/90">
-                  Craftella • 18 October 2026 • 55 Bistro
+                  Craftella • {locationConfig?.eventDate || '18 October 2026'} • {locationConfig?.venueName || '55 Bistro'}
                 </div>
               </div>
             </div>

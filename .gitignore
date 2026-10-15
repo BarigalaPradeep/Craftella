@@ -26,3 +26,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary files
+.temp
+supabase/.temp
+

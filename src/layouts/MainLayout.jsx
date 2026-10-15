@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import CustomCursor from '../components/CustomCursor';
+import AmbientGlow from '../components/AmbientGlow';
 
 export default function MainLayout() {
   const { pathname } = useLocation();
@@ -13,6 +15,11 @@ export default function MainLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#090E17] text-[#fff7fb] relative overflow-x-hidden">
+      {/* Interactive Cursor with Rhinestone Particle Physics */}
+      <CustomCursor />
+
+      {/* Ambient Mouse-Follow Spotlight Glow & Breathing Background Orbs */}
+      <AmbientGlow />
       {/* Mobile Floral Framing Background (visible on mobile screens) */}
       <div
         className="fixed inset-0 pointer-events-none md:hidden z-0 overflow-hidden"

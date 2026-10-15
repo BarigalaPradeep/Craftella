@@ -35,7 +35,7 @@ export default function VenueCard() {
       </p>
 
       {/* Official Event Venue Information Card */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-12 overflow-hidden rounded-[22px] border border-[rgba(158,190,246,0.2)] bg-[#111B2D] shadow-2xl transition-all duration-300 hover:border-[rgba(158,190,246,0.35)]">
+      <div className="spotlight-card mt-8 grid grid-cols-1 md:grid-cols-12 overflow-hidden rounded-[22px] border border-[rgba(158,190,246,0.2)] bg-[#111B2D] shadow-2xl transition-all duration-300 hover:border-[rgba(158,190,246,0.35)]">
         {/* Left Side: Venue Visual Orbit */}
         <div
           className="relative flex min-h-[260px] md:min-h-[360px] md:col-span-6 lg:col-span-5 items-center justify-center overflow-hidden bg-gradient-to-br from-[#16233B] to-[#0A101C]"
@@ -54,7 +54,7 @@ export default function VenueCard() {
             <div className="absolute h-[130px] w-[130px] rounded-full border border-[rgba(158,190,246,0.22)]" />
 
             {/* Glowing hydrangea venue pin */}
-            <div className="relative z-10 flex h-[86px] w-[86px] -rotate-6 items-center justify-center rounded-[28px] border border-[rgba(227,237,252,0.7)] bg-gradient-to-br from-[#9EBEF6] via-[#7AA5F2] to-[#578CE6] text-[#070D1A] shadow-[0_15px_50px_rgba(87,140,230,0.38)] transition-transform duration-300 hover:rotate-0 hover:scale-105">
+            <div className="animate-float-slow relative z-10 flex h-[86px] w-[86px] -rotate-6 items-center justify-center rounded-[28px] border border-[rgba(227,237,252,0.7)] bg-gradient-to-br from-[#9EBEF6] via-[#7AA5F2] to-[#578CE6] text-[#070D1A] shadow-[0_15px_50px_rgba(87,140,230,0.38)] transition-transform duration-300 hover:rotate-0 hover:scale-105">
               <MapPin className="h-10 w-10 text-[#070D1A] stroke-[2.2]" />
             </div>
           </div>
@@ -90,11 +90,11 @@ export default function VenueCard() {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {/* Get Directions Button */}
             <a
-              href={venue.googleMapsUrl}
+              href={venue.googleMapsUrl || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-[9px] border border-[#7AA5F2] bg-[#7AA5F2] px-6 text-xs font-extrabold uppercase tracking-wider text-[#070D1A] transition-all duration-200 hover:border-[#578CE6] hover:bg-[#578CE6] hover:shadow-[0_0_25px_rgba(122,165,242,0.4)] hover:-translate-y-0.5 active:translate-y-0"
-              aria-label={`Get directions to ${venue.name} on Google Maps (opens in a new tab)`}
+              className="animate-shimmer-sweep inline-flex min-h-[48px] items-center justify-center gap-2 rounded-[9px] border border-[#7AA5F2] bg-[#7AA5F2] px-6 text-xs font-extrabold uppercase tracking-wider text-[#070D1A] transition-all duration-200 hover:border-[#578CE6] hover:bg-[#578CE6] hover:shadow-[0_0_25px_rgba(122,165,242,0.4)] hover:-translate-y-0.5 active:translate-y-0"
+              aria-label={`Get directions to ${venue.venueName || venue.name || 'Venue'} on Google Maps (opens in a new tab)`}
             >
               <Navigation className="h-4 w-4" />
               <span>{venue.buttonText}</span>

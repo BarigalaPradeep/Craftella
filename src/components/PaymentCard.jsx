@@ -71,26 +71,26 @@ export default function PaymentCard({
   return (
     <div
       onClick={!adminView && onSelect ? () => onSelect(card) : undefined}
-      className={`group relative flex flex-col justify-between rounded-3xl border p-6 transition-all duration-300 ${
+      className={`payment-card spotlight-card group relative flex flex-col justify-between rounded-3xl border p-6 transition-all duration-300 ${
         isPaused ? 'opacity-65 grayscale-[30%]' : ''
       } ${
         isSelected
-          ? `${theme.borderActive} bg-gradient-to-b ${theme.gradient} ${theme.shadowGlow} ring-1 ${theme.ring} scale-[1.01]`
-          : 'border-[rgba(158,190,246,0.18)] bg-[#111B2D]/90 hover:border-[rgba(158,190,246,0.38)] hover:bg-[#152136] hover:-translate-y-1 hover:shadow-xl'
+          ? `${theme.borderActive} bg-gradient-to-b ${theme.gradient} ${theme.shadowGlow} ring-1 ${theme.ring} scale-[1.01] animate-pulse-glow`
+          : 'border-[rgba(158,190,246,0.18)] bg-[#111B2D]/90 hover:border-[rgba(158,190,246,0.38)] hover:bg-[#152136] hover:-translate-y-1 hover:shadow-2xl'
       } ${!adminView ? 'cursor-pointer' : ''}`}
     >
       {/* Top Badges */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <span
-            className={`rounded-full px-3 py-1 text-[10px] font-bold tracking-[0.2em] uppercase ${theme.badgeBg}`}
+            className={`rounded-full px-3 py-1 text-[10px] font-bold tracking-[0.2em] uppercase transition-transform group-hover:scale-105 ${theme.badgeBg}`}
           >
             {card.type || 'WORKSHOP PASS'}
           </span>
 
           {card.recommended && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-black shadow-sm">
-              <Flame className="h-3 w-3 fill-black text-black" />
+            <span className="animate-shimmer-sweep inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-black shadow-md shadow-amber-500/30">
+              <Flame className="h-3 w-3 fill-black text-black animate-twinkle" />
               <span>Recommended</span>
             </span>
           )}

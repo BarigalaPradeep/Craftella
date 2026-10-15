@@ -15,7 +15,7 @@ import {
 import { usePaymentCards } from '../context/PaymentCardContext';
 
 export default function BookTickets() {
-  const { activeCards, addBooking, paymentConfig, uploadAsset } = usePaymentCards();
+  const { activeCards, addBooking, paymentConfig, uploadAsset, locationConfig } = usePaymentCards();
 
   const [selectedTicketId, setSelectedTicketId] = useState(
     activeCards[0]?.id || 'single'
@@ -141,9 +141,9 @@ export default function BookTickets() {
       quantity,
       unitPrice: selectedTicket.price,
       totalPrice,
-      date: 'Sunday, 18 October 2026',
-      time: '2:00 PM – 5:00 PM',
-      venue: '55 Bistro',
+      date: locationConfig?.eventDate || 'Sunday, 18 October 2026',
+      time: locationConfig?.eventTime || '2:00 PM – 5:00 PM',
+      venue: locationConfig?.venueName || '55 Bistro',
       customerName: customerName || 'Valued Guest',
       customerEmail: customerEmail || 'guest@example.com',
       whatsappNumber,
@@ -180,12 +180,7 @@ export default function BookTickets() {
       {/* INTRO HERO */}
       <section className="relative px-6 py-16 sm:px-8 sm:py-20 text-center overflow-hidden">
         <div className="mx-auto max-w-3xl">
-          <p className="inline-flex items-center gap-2 rounded-full border border-[rgba(158,190,246,0.25)] bg-[rgba(122,165,242,0.08)] px-4 py-1.5 text-[10px] font-bold tracking-[0.25em] text-[#7AA5F2] uppercase">
-            <Sparkles className="w-3 h-3 text-[#578CE6]" />
-            <span>CRAFTELLA • 18 OCTOBER</span>
-          </p>
-
-          <h1 className="mt-6 font-serif text-4xl sm:text-6xl font-medium tracking-tight text-white leading-tight">
+          <h1 className="font-serif text-4xl sm:text-6xl font-medium tracking-tight text-white leading-tight">
             Choose your <br />
             <span className="italic text-[#7AA5F2]">pass.</span>
           </h1>
@@ -457,7 +452,7 @@ export default function BookTickets() {
               You're Going to Craftella!
             </h2>
             <p className="mt-2 text-xs text-[#9BB1D3]">
-              Thank you {confirmedBooking.name}. Please keep your 6-character ticket code ready for entry at 55 Bistro.
+              Thank you {confirmedBooking.name}. Please keep your 6-character ticket code ready for entry at {confirmedBooking.venue || locationConfig?.venueName || '55 Bistro'}.
             </p>
 
             {/* Ticket Code Box */}

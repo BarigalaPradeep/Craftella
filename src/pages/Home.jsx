@@ -23,12 +23,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
             <div className="lg:col-span-7 flex flex-col items-start">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(158,190,246,0.25)] bg-[rgba(122,165,242,0.08)] px-4 py-1.5 text-[10px] font-bold tracking-[0.25em] text-[#7AA5F2] uppercase">
-                <Sparkles className="w-3 h-3 text-[#578CE6]" />
-                <span>CREATIVE ART EXPERIENCE</span>
-              </div>
-
-              <h1 className="mt-6 font-serif text-5xl sm:text-7xl lg:text-8xl font-medium tracking-tight text-white leading-none">
+              <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-medium tracking-tight text-white leading-none">
                 CRAFTELLA
               </h1>
 
@@ -43,7 +38,7 @@ export default function Home() {
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   to="/book-tickets"
-                  className="inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-lg bg-[#7AA5F2] px-6 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg hover:bg-[#578CE6] hover:shadow-[0_0_25px_rgba(122,165,242,0.45)] hover:-translate-y-0.5 transition-all"
+                  className="animate-shimmer-sweep inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-lg bg-[#7AA5F2] px-6 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#7AA5F2]/25 hover:bg-[#578CE6] hover:shadow-[0_0_25px_rgba(122,165,242,0.55)] hover:-translate-y-0.5 transition-all"
                 >
                   <Ticket className="h-4 w-4 text-white" />
                   <span className="text-white font-bold">Book Your Pass</span>
@@ -60,16 +55,20 @@ export default function Home() {
 
             {/* Right Interactive Event Card */}
             <div className="lg:col-span-5 flex justify-center">
-              <div className="w-full max-w-md rounded-3xl border border-[rgba(158,190,246,0.22)] bg-gradient-to-br from-[#16233B] via-[#111B2D] to-[#0A101C] p-8 shadow-2xl relative overflow-hidden group hover:border-[#7AA5F2]/45 transition-all duration-300">
+              <div className="animate-float-slow spotlight-card w-full max-w-md rounded-3xl border border-[rgba(158,190,246,0.22)] bg-gradient-to-br from-[#16233B] via-[#111B2D] to-[#0A101C] p-8 shadow-2xl relative overflow-hidden group hover:border-[#7AA5F2]/45 transition-all duration-300">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle_at_top_right,rgba(122,165,242,0.25),transparent_70%)]" />
 
                 <div className="flex items-center justify-between border-b border-[rgba(158,190,246,0.15)] pb-4 text-[10px] font-bold tracking-[0.2em] text-[#9BB1D3]">
                   <span>THE EXPERIENCE</span>
-                  <span className="rounded-full bg-[#7AA5F2]/15 px-2.5 py-1 text-[#7AA5F2] font-semibold">18 OCT 2026</span>
+                  <span className="rounded-full bg-[#7AA5F2]/15 px-2.5 py-1 text-[#7AA5F2] font-semibold uppercase">
+                    {locationConfig?.eventDate
+                      ? locationConfig.eventDate.replace(/^.*?,\s*/, '').slice(0, 11)
+                      : '18 OCT 2026'}
+                  </span>
                 </div>
 
                 <div className="my-6">
-                  <div className="text-3xl text-[#7AA5F2] font-serif mb-2">✦</div>
+                  <div className="inline-block text-3xl text-[#7AA5F2] font-serif mb-2 animate-twinkle">✦</div>
                   <h3 className="font-serif text-3xl font-medium text-white">Craftella</h3>
                   <p className="text-xs tracking-wider text-[#7AA5F2] uppercase mt-1">
                     Rhinestone Canvas Art
@@ -79,16 +78,22 @@ export default function Home() {
                 <div className="space-y-3.5 border-t border-[rgba(158,190,246,0.15)] pt-6 text-xs">
                   <div className="flex items-center gap-3 text-[#CBD8ED]">
                     <Calendar className="h-4 w-4 text-[#7AA5F2]" />
-                    <span>Sunday, 18 October 2026</span>
+                    <span>{locationConfig?.eventDate || 'Sunday, 18 October 2026'}</span>
                   </div>
                   <div className="flex items-center gap-3 text-[#CBD8ED]">
                     <Clock className="h-4 w-4 text-[#7AA5F2]" />
-                    <span>2:00 PM – 5:00 PM</span>
+                    <span>{locationConfig?.eventTime || '2:00 PM – 5:00 PM'}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-[#CBD8ED]">
-                    <MapPin className="h-4 w-4 text-[#7AA5F2]" />
-                    <span>55 Bistro</span>
-                  </div>
+                  <Link
+                    to="/location"
+                    className="flex items-center gap-3 text-[#CBD8ED] hover:text-[#7AA5F2] transition-colors group/venue"
+                    title="View venue details & Google Maps directions"
+                  >
+                    <MapPin className="h-4 w-4 text-[#7AA5F2] group-hover/venue:scale-110 transition-transform" />
+                    <span className="underline decoration-[#7AA5F2]/40 underline-offset-2">
+                      {locationConfig?.venueName || '55 Bistro'}
+                    </span>
+                  </Link>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-[rgba(158,190,246,0.15)] flex items-center justify-between">
